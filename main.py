@@ -82,6 +82,16 @@ def create_monospace_font(font_name="KupMono"):
         font.generate(ttf_path)
         print(f"Generated {ttf_path}")
 
+        # Generate WOFF
+        woff_path = f"{name}.woff"
+        font.generate(woff_path)
+        print(f"Generated {woff_path}")
+
+        # Generate WOFF2
+        woff_path = f"{name}.woff2"
+        font.generate(woff_path)
+        print(f"Generated {woff_path}")
+
     return font, generate_font_files
 
 # Create and generate the font

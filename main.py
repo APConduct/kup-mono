@@ -1,83 +1,89 @@
 import fontforge
 import psMat
-import math
+import os
 
-class MonoFontGenerator:
-    def __init__(self, name="KupMono"):
-        self.font = fontforge.font()
-        self.font.fontname = name
-        self.font.familyname = name
-        self.font.fullname = name
+def create_monospace_font(font_name="KupMono"):
+    # Create a new font
+    font = fontforge.font()
 
-        # set up basic font metrics
-        self.font.ascent = 800
-        self.font.descent = 200
-        self.em_size = 1000
-        self.stroke_width = 60
+    # Set basic font properties
+    font.fontname = font_name
+    font.familyname = font_name
+    font.fullname = font_name
+    font.encoding = 'UnicodeFull'
 
-        # Set up grid
-        self.font.grid.spacing = 100
-        self.font.uwidth = self.stroke_width # Set uniform stroke width
+    # Set font parameters inspired by brass-mono and zed-mono
+    font.ascent = 800
+    font.descent = 200
+    font.em = 1000  # Standard em square size
+    font.design_size = 10
 
-    def create_glyph(self, char):
-        """Create a glyph for the given character."""
-        glyph = self.font.createChar(ord(char))
-        glyph.width = self.em_size # Ensure monospace
+    # Set consistent dimensions for monospace
+    glyph_width = 600  # Standard width for all glyphs
 
-        # Start fresh
-        glyph.clear()
-        pen  = glyph.glyphPen()
+    # Function to create basic glyph with monospace metrics
+    def setup_glyph(glyph):
+        glyph.width = glyph_width
+        glyph.vwidth = font.ascent + font.descent
+        return glyph
 
-        if char == 'a':
-            # Create circular bowl
-            circle = fontforge.unitShape("elipses", self.stroke_width)
-            # scale and position the circle
-            circle.transform(psMat.scale(0.4))
-            circle.transform(psMat.translate(300, 400))
-            glyph.draw(circle)
+    # Create basic Latin alphabet (a-z, A-Z)
+    for unicode_val in range(65, 91):  # Uppercase A-Z
+        char = chr(unicode_val)
+        glyph = font.createChar(unicode_val, char)
+        setup_glyph(glyph)
 
-            #add stem
-            stem = fontforge.unitShape("rectangle", self.stroke_width)
-            stem.transform(psMat.scale(0.1, 0.5))
-            glyph.draw(stem)
+    for unicode_val in range(97, 123):  # Lowercase a-z
+        char = chr(unicode_val)
+        glyph = font.createChar(unicode_val, char)
+        setup_glyph(glyph)
 
-        elif char == 'i':
-            # create dot
-            dot = fontforge.unitShape("elipses", self.stroke_width)
-            dot.transform(psMat.scale(0.15))
-            dot.transform(psMat.translate(500, 800))
-            glyph.draw(dot)
+    # Create digits (0-9)
+    for unicode_val in range(48, 58):
+        char = chr(unicode_val)
+        glyph = font.createChar(unicode_val, char)
+        setup_glyph(glyph)
 
-            # create stem
-            stem = fontforge.unitShape("rectangle", self.stroke_width)
-            stem.transform(psMat.scale(0.1, 0.5))
-            stem.transform(psMat.translate(500, 400))
-            glyph.draw(stem)
+    # Add common punctuation marks
+    punctuation = "!@#$%^&*()_+-=[]{}\\|;:'\",.<>/?"
+    for char in punctuation:
+        glyph = font.createChar(ord(char), char)
+        setup_glyph(glyph)
 
-        # add more characters here
+    # Example of creating 'A' glyph with brass-mono inspired geometry
+    glyph_A = font[ord('A')]
+    pen = glyph_A.glyphPen()
 
-        glyph.removeOverlap()
-        glyph.simplify()
-        glyph.round()
+    # Define 'A' contours
+    pen.moveTo((50, 0))
+    pen.lineTo((250, 700))
+    pen.lineTo((450, 0))
+    pen.lineTo((400, 0))
+    pen.lineTo((250, 600))
+    pen.lineTo((100, 0))
+    pen.closePath()
 
-    def generate_font(self, output_path):
-        """Generate the complete font file."""
-        # Basic latin alphabet and numbers
-        chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    # Add crossbar
+    pen.moveTo((150, 250))
+    pen.lineTo((350, 250))
+    pen.lineTo((350, 300))
+    pen.lineTo((150, 300))
+    pen.closePath()
 
-        for char in chars:
-            self.create_glyph(char)
+    # Generate font files
+    def generate_font_files(font, name):
+        # Generate OTF
+        otf_path = f"{name}.otf"
+        font.generate(otf_path)
+        print(f"Generated {otf_path}")
 
-        # Set up font features
-        self.font.selection.all()
-        self.font.autoHint          # Add hinting
-        self.font.autoInstr()       # Add TrueType instructions
+        # Generate TTF
+        ttf_path = f"{name}.ttf"
+        font.generate(ttf_path)
+        print(f"Generated {ttf_path}")
 
-        # Generate various font formats
-        self.font.generate(f"{output_path}.ttf")    # TrueType
-        self.font.generate(f"{output_path}.otf")    # OpenType
-        self.font.generate(f"{output_path}.woff2")  # WOFF2 for web
+    return font, generate_font_files
 
-if __name__ == "__main__":
-    font = MonoFontGenerator()
-    font.generate_font("KupMono")
+# Create and generate the font
+font, generate_files = create_monospace_font()
+generate_files(font, "KupMono")

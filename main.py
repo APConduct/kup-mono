@@ -70,6 +70,10 @@ def create_monospace_font(font_name="KupMono"):
     pen.lineTo((150, 300))
     pen.closePath()
 
+    glyph_B = font[ord('B')]
+    pen = glyph_B.glyphPen()
+
+
     # Generate font files
     def generate_font_files(font, name):
         # Generate OTF

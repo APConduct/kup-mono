@@ -1,6 +1,30 @@
 import fontforge
 import psMat
 import os
+import math
+
+def create_rounded_corner(pen, x1, y1, x2, y2, x3, y3, radius):
+    """Create a rounded corner between three points using a quadratic curve."""
+    # Calculate vectors
+    dx1, dy1 = x2 - x1, y2 - y1
+    dx2, dy2 = x3 - x2, y3 - y2
+
+    # Normalize vectors
+    len1 = math.sqrt(dx1*dx1 + dy1*dy1)
+    len2 = math.sqrt(dx2*dx2 + dy2*dy2)
+
+    dx1, dy1 = dx1/len1, dy1/len1
+    dx2, dy2 = dx2/len2, dy2/len2
+
+    # Calculate rounded corner points
+    p1x = x2 - dx1 * radius
+    p1y = y2 - dy1 * radius
+    p2x = x2 + dx2 * radius
+    p2y = y2 + dy2 * radius
+
+    # Draw the rounded corner
+    pen.lineTo((p1x, p1y))
+    pen.curveTo((x2, y2), (x2, y2), (p2x, p2y))
 
 def create_monospace_font(font_name="KupMono"):
     # Create a new font
@@ -21,10 +45,15 @@ def create_monospace_font(font_name="KupMono"):
     # Set consistent dimensions for monospace
     glyph_width = 600  # Standard width for all glyphs
 
+    corner_radius = 30 # Radius for rounded corners
+    stroke_width = 80 # Width of main strokes
+
     # Function to create basic glyph with monospace metrics
     def setup_glyph(glyph):
         glyph.width = glyph_width
         glyph.vwidth = font.ascent + font.descent
+        # Clear any existing contours
+        glyph.clear()
         return glyph
 
     # Create basic Latin alphabet (a-z, A-Z)
@@ -56,7 +85,9 @@ def create_monospace_font(font_name="KupMono"):
 
     # Define 'A' contours
     pen.moveTo((50, 0))
-    pen.lineTo((250, 700))
+
+    pen.lineTo((250, 800))
+
     pen.lineTo((450, 0))
     pen.lineTo((400, 0))
     pen.lineTo((250, 600))
